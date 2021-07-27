@@ -2,6 +2,7 @@ from nekto_man_states import States
 from nekto_man_BankUser import BankUser
 from nekto_man_SapConnect import SapConnect, ABAPRuntimeError, ABAPApplicationError, CommunicationError, LogonError
 from nekto_man_ButtonHandlerFactory import ButtonHandlerFactory
+from nekto_man_TextHandlerFactory import TextHandlerFactory
 from requests.exceptions import ReadTimeout
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import ReadTimeoutError
@@ -18,16 +19,14 @@ class BankBot:
     TRANS_IN_CHECK_TRANS = 7
     R_LOGIN_BUTTON_PREF = "R_LOGIN_BUTTON_PREF"
     R_NAVIGATION_BUTTON_PREF = "R_NAVIGATION_BUTTON_PREF"
+    CONFIG_FILE_NAME = "sapnwrfc.cfg"
 
     def __init__(self):
         self.states = States()
         self.users = self.__get_users()
         config = configparser.ConfigParser()
-        config.read('sapnwrfc.cfg')
+        config.read(self.CONFIG_FILE_NAME)
         self.__bot = telebot.TeleBot(config.get("bot", "token"))
-        self.commands = {
-            'start': 'Начало работы'
-        }
 
         @self.__bot.message_handler(commands=['start'])
         def start(message):
@@ -49,115 +48,10 @@ class BankBot:
         def refresh(message):
             self.users = self.__get_users()
 
-
         # Ввод логина(авторизация)
         @self.__bot.message_handler(content_types=["text"])
         def set_login(message):
-            if self.states.get_step(message.from_user.id) == self.states.STEP_WAIT_LOGIN_AUTH:
-                # Если статус пользователя - "ожидание логина"
-                try:
-                    # Мы получили логин от пользователя, нужно передать их в БД
-                    conn = SapConnect.get_connection()
-                    result = conn.call('ZFM_NRA_TGBB_SET_NEW_USER', IV_USER_ID=str(message.from_user.id).zfill(10),
-                                       IV_SAP_LOGIN=message.text)
-                    conn.close()
-
-                    if result.get('EV_RESULT') == '2':
-                        # Такой пользователь не зарегистрирован в системе банка
-                        self.__bot.send_message(message.chat.id,
-                                                "Такой пользователь не зарегистрирован в системе банка. "
-                                                "Зарегистрируйтесь в банке внутри SAP или проверьте правильность ввода")
-                        self.__bot.send_message(message.chat.id, "Вы не авторизованы, введите SAP логин")
-                        return
-                    if result.get('EV_RESULT') == '3':
-                        # Такой пользователь уже авторизован в телеграмме
-                        self.__bot.send_message(message.chat.id,
-                                                "Такой пользователь уже авторизован в телеграмме, обратитесь к "
-                                                "администратору")
-                        return
-                    if result.get('EV_RESULT') == '1':
-                        # Успешно, обновить список пользователей
-                        self.users = self.__get_users()
-                        # Перейти к начальному меню
-                        # перевести в состояние "Авторизован, ожидаю меню"
-                        self.states.set_step(message.chat.id, self.states.STEP_MAIN_MENU)
-                        self.show_start_directory(message)
-                        return
-
-                    self.__bot.send_message(message.chat.id, "Произошла непредвиденная ошибка")
-                    return
-                except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-                    print("Ошибки на стороне SAP")
-                    self.__bot.send_message(message.chat.id, "Ошибки на стороне SAP")
-                    self.states.set_step(message.chat.id, self.states.STEP_MAIN_MENU)
-                    self.show_start_directory(message)
-            elif self.states.get_step(message.from_user.id) == self.states.STEP_WAIT_LOGIN_RECEIVER:
-                # Если статус пользователя - "ожидание ограничений логина"
-                # удалить лидирующие и замыкающие '?' и '*'
-                search_text = message.text
-                while len(search_text) > 0 and (search_text[0] == '*' or search_text[0] == '?'):
-                    search_text = search_text[1:]
-                while len(search_text) > 0 and (search_text[-1] == '*' or search_text[-1] == '?'):
-                    search_text = search_text[:-1]
-                self.states.set_name_search(message.chat.id, search_text.upper())
-                # Найти последнее отправленное ботом сообщение со списком пользователей и переотправить его
-                last_message_id = self.states.get_last_name_list(message.chat.id)
-                if last_message_id is not None:
-                    self.get_bot().delete_message(chat_id=message.chat.id,
-                                                  message_id=last_message_id)
-                    self.show_c_rec_name_dir(message)
-            elif self.states.get_step(message.from_user.id) == self.states.STEP_WAIT_SUM:
-                # Получили ввод во время ожидания суммы
-                try:
-                    trans = re.split(' ', message.text, maxsplit=1)
-                    sum_text = trans[0].replace(',', '.')
-                    if len(sum_text) > 13:
-                        # Олигархи бл
-                        raise ValueError
-                    trans_sum = round(float(sum_text), 2)
-                    if len(trans) > 1:
-                        trans_comment = trans[1]
-                    else:
-                        trans_comment = ''
-                    # Сумма успешно получена, передаем данные в SAP
-                    user_to = self.states.get_receiver_login(message.from_user.id)
-                    user_from = None
-                    for user in self.users:
-                        if user.id == str(message.from_user.id).zfill(10):
-                            user_from = user.sap_login
-                    if trans_sum < 0:
-                        trans_sum = trans_sum * -1
-                        user_from, user_to = user_to, user_from
-                    creator_login = None
-                    for user in self.users:
-                        if user.id == str(message.from_user.id).zfill(10):
-                            creator_login = user.sap_login
-                    conn = SapConnect.get_connection()
-                    result = conn.call('ZFM_NRA_TGBB_CREATE_TRANS',
-                                       IV_USER_FROM=user_from,
-                                       IV_USER_TO=user_to,
-                                       IV_COMMENT=trans_comment,
-                                       IV_SUM=trans_sum,
-                                       IV_USER_CREATOR=creator_login)
-                    conn.close()
-                    error_text = result.get("EV_ERROR")
-                    if error_text != '':
-                        self.__bot.send_message(message.chat.id, error_text)
-                    else:
-                        self.__bot.send_message(message.chat.id, "Успешно")
-                    # Перевести статус в "Авторизован, ожидаю меню"
-                    self.states.set_step(message.chat.id, self.states.STEP_MAIN_MENU)
-                    self.show_start_directory(message)
-
-                except ValueError:
-                    # Ввод не удалось распознать как число
-                    print("Ввод не удалось распознать как число")
-                    self.__bot.send_message(message.chat.id, "Не удалось распознать сумму, попробуйте еще раз")
-                except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-                    print("Ошибки на стороне SAP")
-                    self.__bot.send_message(message.chat.id, "Ошибки на стороне SAP")
-                    self.states.set_step(message.chat.id, self.states.STEP_MAIN_MENU)
-                    self.show_start_directory(message)
+            TextHandlerFactory().get_handler(message, self).process(message, self)
 
         # Нажатие на кнопку
         @self.__bot.callback_query_handler(func=lambda call: True)
@@ -193,6 +87,12 @@ class BankBot:
         keyboard = types.InlineKeyboardMarkup()
         # Получить список для показа
         name_list_to_show, is_roll_left, is_roll_right = self.__get_current_name_list(for_user)
+
+        # Если есть ограничение поиска- добавить кнопку отменить ограничения поиска
+        if self.states.get_name_search(for_user) != '':
+            keyboard.add(types.InlineKeyboardButton(text="Сбросить ограничения по имени",
+                                                    callback_data=self.R_NAVIGATION_BUTTON_PREF + "reset"))
+
         # Кнопки с именами пользователей
         for user in name_list_to_show:
             keyboard.add(types.InlineKeyboardButton(text=user.full_name,
@@ -269,7 +169,8 @@ class BankBot:
                     users_list_with_search.append(user)
         return users_list_with_search
 
-    def __get_users(self):
+    @staticmethod
+    def __get_users():
         try:
             conn = SapConnect.get_connection()
 

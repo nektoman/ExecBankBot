@@ -33,8 +33,10 @@ class HandlerLogNavigation:
         old_page = bankbot.states.get_page(call.message.chat.id)
         if re.search("left_arrow", call.data) is not None:
             bankbot.states.set_page(call.message.chat.id, old_page - 1)
-        else:
+        elif re.search("right_arrow", call.data) is not None:
             bankbot.states.set_page(call.message.chat.id, old_page + 1)
+        elif re.search("reset", call.data) is not None:
+            bankbot.states.set_name_search(call.message.chat.id, '')
         keyboard = bankbot.get_keyboard_rec(call.message.chat.id)
         bankbot.get_bot().edit_message_text(chat_id=call.message.chat.id,
                                             message_id=call.message.message_id,
@@ -114,6 +116,7 @@ class HandlerCheckTrans:
             bankbot.__bot.send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
+
 
 class HandlerCheckValet:
     @staticmethod
