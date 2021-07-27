@@ -1,6 +1,0 @@
-('c:\\users\\execution '
- 'bgd\\appdata\\local\\programs\\python\\python39\\lib\\site-packages\\urllib3-1.26.6-py3.9.egg',
- None,
- {'EGG-INFO', '*.pyc', '*.pyw', '*.py', '*.pyd', '*.cp39-win_amd64.pyd'},
- 'DATA',
- [])
