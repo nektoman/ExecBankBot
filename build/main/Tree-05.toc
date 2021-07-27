@@ -1,0 +1,9 @@
+('c:\\users\\execution '
+ 'bgd\\appdata\\local\\programs\\python\\python39\\lib\\site-packages\\certifi-2021.5.30-py3.9.egg',
+ None,
+ {'EGG-INFO', '*.pyc', '*.pyw', '*.py', '*.pyd', '*.cp39-win_amd64.pyd'},
+ 'DATA',
+ [('certifi\\cacert.pem',
+   'c:\\users\\execution '
+   'bgd\\appdata\\local\\programs\\python\\python39\\lib\\site-packages\\certifi-2021.5.30-py3.9.egg\\certifi\\cacert.pem',
+   'DATA')])
