@@ -19,7 +19,7 @@ class BankBot:
     TRANS_IN_CHECK_TRANS = 7
     R_LOGIN_BUTTON_PREF = "R_LOGIN_BUTTON_PREF"
     R_NAVIGATION_BUTTON_PREF = "R_NAVIGATION_BUTTON_PREF"
-    CONFIG_FILE_NAME = "sapnwrfc.cfg"чтотосломал в разработке
+    CONFIG_FILE_NAME = "sapnwrfc.cfg"
 
     def __init__(self):
         self.states = States()
