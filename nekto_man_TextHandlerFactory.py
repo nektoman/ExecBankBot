@@ -120,9 +120,9 @@ class FillSum:
             conn.close()
             error_text = result.get("EV_ERROR")
             if error_text != '':
-                bankbot.__bot.send_message(message.chat.id, error_text)
+                bankbot.get_bot().send_message(message.chat.id, error_text)
             else:
-                bankbot.__bot.send_message(message.chat.id, "Успешно")
+                bankbot.get_bot().send_message(message.chat.id, "Успешно")
             # Перевести статус в "Авторизован, ожидаю меню"
             bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(message)
@@ -130,9 +130,9 @@ class FillSum:
         except ValueError:
             # Ввод не удалось распознать как число
             print("Ввод не удалось распознать как число")
-            bankbot.__bot.send_message(message.chat.id, "Не удалось распознать сумму, попробуйте еще раз")
+            bankbot.get_bot().send_message(message.chat.id, "Не удалось распознать сумму, попробуйте еще раз")
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.__bot.send_message(message.chat.id, "Ошибки на стороне SAP")
+            bankbot.get_bot().send_message(message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(message)
