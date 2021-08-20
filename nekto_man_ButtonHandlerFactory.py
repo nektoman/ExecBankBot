@@ -81,7 +81,7 @@ class HandlerCheckTrans:
             start = count - bankbot.TRANS_IN_CHECK_TRANS
             if start < 0:
                 start = 0
-            text = "Последние транзакции в которых вы учавствовали:\n" \
+            text = "Последние транзакции в которых вы участвовали:\n" \
                    + "--------------------------------------\n"
             i = start
             while i < count:
