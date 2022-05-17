@@ -6,6 +6,7 @@
 
 ## Запуск в docker
 
+На основе <a  href="https://hub.docker.com/repository/docker/nektoman/sapnwsdk">Готового контейнера</a>
 ```
 docker build . -t bankbot:latest
 docker run --name bankbot_prod --rm -d bankbot:latest config/[your_config_file]
@@ -13,7 +14,7 @@ docker run --name bankbot_prod --rm -d bankbot:latest config/[your_config_file]
 
 ## Запуск без docker
 
-Для соединения с SAP NW через RFC используется <a  href="http://sap.github.io/PyRFC/install.html">PyRFC</a> , необходимо настроить окружение.
+Для соединения с SAP NW через RFC используется <a  href="http://sap.github.io/PyRFC/install.html">PyRFC</a>, необходимо настроить окружение.
 
 После этого:
 ```
