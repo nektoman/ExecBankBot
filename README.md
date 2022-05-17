@@ -6,7 +6,7 @@
 
 ## Запуск в docker
 
-На основе <a  href="https://hub.docker.com/repository/docker/nektoman/sapnwsdk">Готового контейнера</a>
+На основе <a  href="https://hub.docker.com/repository/docker/nektoman/sapnwsdk">готового контейнера</a>
 ```
 docker build . -t bankbot:latest
 docker run --name bankbot_prod --rm -d bankbot:latest config/[your_config_file]
