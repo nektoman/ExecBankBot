@@ -19,14 +19,13 @@ class BankBot:
     TRANS_IN_CHECK_TRANS = 7
     R_LOGIN_BUTTON_PREF = "R_LOGIN_BUTTON_PREF"
     R_NAVIGATION_BUTTON_PREF = "R_NAVIGATION_BUTTON_PREF"
-    CONFIG_FILE_NAME = "sapnwrfc.cfg"
 
-    def __init__(self):
+    def __init__(self, config_name):
         self.states = States()
+        self.config = configparser.ConfigParser()
+        self.config.read(config_name)
         self.users = self.__get_users()
-        config = configparser.ConfigParser()
-        config.read(self.CONFIG_FILE_NAME)
-        self.__bot = telebot.TeleBot(config.get("bot", "token"))
+        self.__bot = telebot.TeleBot(self.config.get("bot", "token"))
 
         @self.__bot.message_handler(commands=['start'])
         def start(message):
@@ -169,10 +168,9 @@ class BankBot:
                     users_list_with_search.append(user)
         return users_list_with_search
 
-    @staticmethod
-    def __get_users():
+    def __get_users(self):
         try:
-            conn = SapConnect.get_connection()
+            conn = SapConnect.get_connection(self.config)
 
             result = conn.call('ZFM_NRA_TGBB_GET_USERS')
             conn.close()

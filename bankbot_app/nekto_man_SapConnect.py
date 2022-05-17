@@ -4,10 +4,8 @@ from pyrfc import Connection, ABAPApplicationError, ABAPRuntimeError, LogonError
 
 class SapConnect:
     @staticmethod
-    def get_connection():
+    def get_connection(config):
         try:
-            config = configparser.ConfigParser()
-            config.read('sapnwrfc.cfg')
             params_connection = config._sections["connection"]
             conn = Connection(**params_connection)
             return conn

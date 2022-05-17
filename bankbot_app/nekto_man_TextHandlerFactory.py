@@ -27,38 +27,38 @@ class Authorization:
         # Если статус пользователя - "ожидание логина"
         try:
             # Мы получили логин от пользователя, нужно передать их в БД
-            conn = SapConnect.get_connection()
+            conn = SapConnect.get_connection(bankbot.config)
             result = conn.call('ZFM_NRA_TGBB_SET_NEW_USER', IV_USER_ID=str(message.from_user.id).zfill(10),
                                IV_SAP_LOGIN=message.text)
             conn.close()
 
             if result.get('EV_RESULT') == '2':
                 # Такой пользователь не зарегистрирован в системе банка
-                bankbot.get_bot().send_message(message.chat.id,
+                bankbot.__bot.send_message(message.chat.id,
                                         "Такой пользователь не зарегистрирован в системе банка. "
                                         "Зарегистрируйтесь в банке внутри SAP или проверьте правильность ввода")
-                bankbot.get_bot().send_message(message.chat.id, "Вы не авторизованы, введите SAP логин")
+                bankbot.__bot.send_message(message.chat.id, "Вы не авторизованы, введите SAP логин")
                 return
             if result.get('EV_RESULT') == '3':
                 # Такой пользователь уже авторизован в телеграмме
-                bankbot.get_bot().send_message(message.chat.id,
+                bankbot.__bot.send_message(message.chat.id,
                                         "Такой пользователь уже авторизован в телеграмме, обратитесь к "
                                         "администратору")
                 return
             if result.get('EV_RESULT') == '1':
                 # Успешно, обновить список пользователей
-                bankbot.users = bankbot.__get_users()
+                bankbot.refresh()
                 # Перейти к начальному меню
                 # перевести в состояние "Авторизован, ожидаю меню"
                 bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
                 bankbot.show_start_directory(message)
                 return
 
-            bankbot.get_bot().send_message(message.chat.id, "Произошла непредвиденная ошибка")
+            bankbot.__bot.send_message(message.chat.id, "Произошла непредвиденная ошибка")
             return
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.get_bot().send_message(message.chat.id, "Ошибки на стороне SAP")
+            bankbot.__bot.send_message(message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(message)
 
@@ -110,7 +110,7 @@ class FillSum:
             for user in bankbot.users:
                 if user.id == str(message.from_user.id).zfill(10):
                     creator_login = user.sap_login
-            conn = SapConnect.get_connection()
+            conn = SapConnect.get_connection(bankbot.config)
             result = conn.call('ZFM_NRA_TGBB_CREATE_TRANS',
                                IV_USER_FROM=user_from,
                                IV_USER_TO=user_to,

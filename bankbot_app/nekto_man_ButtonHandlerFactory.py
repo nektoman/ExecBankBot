@@ -67,7 +67,7 @@ class HandlerCheckTrans:
                                             text="Просмотреть транзакции")
         # Вывести транзакции
         try:
-            conn = SapConnect.get_connection()
+            conn = SapConnect.get_connection(bankbot.config)
             result = conn.call('ZFM_NRA_TGBB_GET_LAST_TRANS', IV_USER_ID=str(call.message.chat.id).zfill(10))
             conn.close()
             error = result.get('EV_ERROR')
@@ -81,7 +81,7 @@ class HandlerCheckTrans:
             start = count - bankbot.TRANS_IN_CHECK_TRANS
             if start < 0:
                 start = 0
-            text = "Последние транзакции в которых вы участвовали:\n" \
+            text = "Последние транзакции в которых вы учавствовали:\n" \
                    + "--------------------------------------\n"
             i = start
             while i < count:
@@ -113,8 +113,8 @@ class HandlerCheckTrans:
 
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
-            bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
+            bankbot.__bot.send_message(call.message.chat.id, "Ошибки на стороне SAP")
+            bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
 
 
@@ -127,7 +127,7 @@ class HandlerCheckValet:
                                             text="Проверить баланс")
         # Показать Счет
         try:
-            conn = SapConnect.get_connection()
+            conn = SapConnect.get_connection(bankbot.config)
             result = conn.call('ZFM_NRA_TGBB_GET_BALANCE', IV_USER_ID=str(call.message.chat.id).zfill(10))
             conn.close()
             error = result.get('EV_ERROR')
@@ -153,8 +153,8 @@ class HandlerCheckValet:
 
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
-            bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
+            bankbot.__bot.send_message(call.message.chat.id, "Ошибки на стороне SAP")
+            bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
 
 
