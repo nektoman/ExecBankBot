@@ -1,6 +1,8 @@
-/sapnwrfc.cfg
+**/*.cfg
 /dist/
 /build/
-/dev_rfc.log
-/venv/
+**/dev_rfc.log
+venv/
 /.idea/
+*__pycache__/
+sandbox/
