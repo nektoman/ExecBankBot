@@ -79,7 +79,11 @@ class HandlerCheckTrans:
             transactions_list = result.get('ET_TRANS')
             text = "Последние транзакции в которых вы учавствовали:\n" \
                    + "--------------------------------------\n"
-            for i in range(bankbot.TRANS_IN_CHECK_TRANS):
+            if len(transactions_list) < bankbot.TRANS_IN_CHECK_TRANS:
+                count = len(transactions_list)
+            else:
+                count = bankbot.TRANS_IN_CHECK_TRANS
+            for i in range(count):
                 line = transactions_list[i]
                 summ = str(line.get('SUMM'))
                 waers = str(line.get('WAERS'))
