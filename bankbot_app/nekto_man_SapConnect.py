@@ -1,5 +1,4 @@
-import configparser
-from pyrfc import Connection, ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError
+from pyrfc import Connection, LogonError, CommunicationError, ABAPRuntimeError, ABAPApplicationError
 
 
 class SapConnect:

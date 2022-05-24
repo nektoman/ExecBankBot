@@ -68,7 +68,7 @@ class HandlerCheckTrans:
         # Вывести транзакции
         try:
             conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_GET_LAST_TRANS', IV_USER_ID=str(call.message.chat.id).zfill(10))
+            result = conn.call('ZFM_NRA_TGBB_GET_LAST_TRANSK', IV_USER_ID=str(call.message.chat.id).zfill(10))
             conn.close()
             error = result.get('EV_ERROR')
             if error != '':
@@ -77,14 +77,9 @@ class HandlerCheckTrans:
                 return
 
             transactions_list = result.get('ET_TRANS')
-            count = len(transactions_list)
-            start = count - bankbot.TRANS_IN_CHECK_TRANS
-            if start < 0:
-                start = 0
             text = "Последние транзакции в которых вы учавствовали:\n" \
                    + "--------------------------------------\n"
-            i = start
-            while i < count:
+            for i in range(bankbot.TRANS_IN_CHECK_TRANS):
                 line = transactions_list[i]
                 summ = str(line.get('SUMM'))
                 waers = str(line.get('WAERS'))
@@ -128,7 +123,7 @@ class HandlerCheckValet:
         # Показать Счет
         try:
             conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_GET_BALANCE', IV_USER_ID=str(call.message.chat.id).zfill(10))
+            result = conn.call('ZFM_NRA_TGBB_GET_BALANCEK', IV_USER_ID=str(call.message.chat.id).zfill(10))
             conn.close()
             error = result.get('EV_ERROR')
             if error != '':

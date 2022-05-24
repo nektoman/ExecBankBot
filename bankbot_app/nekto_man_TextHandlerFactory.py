@@ -28,7 +28,7 @@ class Authorization:
         try:
             # Мы получили логин от пользователя, нужно передать их в БД
             conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_SET_NEW_USER', IV_USER_ID=str(message.from_user.id).zfill(10),
+            result = conn.call('ZFM_NRA_TGBB_SET_NEW_USERK', IV_USER_ID=str(message.from_user.id).zfill(10),
                                IV_SAP_LOGIN=message.text)
             conn.close()
 
@@ -111,7 +111,7 @@ class FillSum:
                 if user.id == str(message.from_user.id).zfill(10):
                     creator_login = user.sap_login
             conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_CREATE_TRANS',
+            result = conn.call('ZFM_NRA_TGBB_CREATE_TRANSK',
                                IV_USER_FROM=user_from,
                                IV_USER_TO=user_to,
                                IV_COMMENT=trans_comment,

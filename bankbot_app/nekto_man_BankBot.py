@@ -172,7 +172,7 @@ class BankBot:
         try:
             conn = SapConnect.get_connection(self.config)
 
-            result = conn.call('ZFM_NRA_TGBB_GET_USERS')
+            result = conn.call('ZFM_NRA_TGBB_GET_USERSK')
             conn.close()
             raw_users_list = result.get('ET_USERS')
             users_list = []
@@ -199,3 +199,6 @@ class BankBot:
 
     def get_bot(self):
         return self.__bot
+
+    def refresh(self):
+        self.users = self.__get_users()
