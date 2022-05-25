@@ -34,14 +34,14 @@ class Authorization:
 
             if result.get('EV_RESULT') == '2':
                 # Такой пользователь не зарегистрирован в системе банка
-                bankbot.__bot.send_message(message.chat.id,
+                bankbot.get_bot().send_message(message.chat.id,
                                         "Такой пользователь не зарегистрирован в системе банка. "
                                         "Зарегистрируйтесь в банке внутри SAP или проверьте правильность ввода")
-                bankbot.__bot.send_message(message.chat.id, "Вы не авторизованы, введите SAP логин")
+                bankbot.get_bot().send_message(message.chat.id, "Вы не авторизованы, введите SAP логин")
                 return
             if result.get('EV_RESULT') == '3':
                 # Такой пользователь уже авторизован в телеграмме
-                bankbot.__bot.send_message(message.chat.id,
+                bankbot.get_bot().send_message(message.chat.id,
                                         "Такой пользователь уже авторизован в телеграмме, обратитесь к "
                                         "администратору")
                 return
@@ -54,11 +54,11 @@ class Authorization:
                 bankbot.show_start_directory(message)
                 return
 
-            bankbot.__bot.send_message(message.chat.id, "Произошла непредвиденная ошибка")
+            bankbot.get_bot().send_message(message.chat.id, "Произошла непредвиденная ошибка")
             return
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.__bot.send_message(message.chat.id, "Ошибки на стороне SAP")
+            bankbot.get_bot().send_message(message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(message)
 

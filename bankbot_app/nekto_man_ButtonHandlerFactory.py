@@ -112,7 +112,7 @@ class HandlerCheckTrans:
 
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.__bot.send_message(call.message.chat.id, "Ошибки на стороне SAP")
+            bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
 
@@ -152,7 +152,7 @@ class HandlerCheckValet:
 
         except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
             print("Ошибки на стороне SAP")
-            bankbot.__bot.send_message(call.message.chat.id, "Ошибки на стороне SAP")
+            bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
 
