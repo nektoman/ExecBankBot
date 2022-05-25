@@ -1,6 +1,5 @@
 from nekto_man_states import States
 from nekto_man_BankUser import BankUser
-from nekto_man_SapConnect import SapConnect, ABAPRuntimeError, ABAPApplicationError, CommunicationError, LogonError
 from nekto_man_ButtonHandlerFactory import ButtonHandlerFactory
 from nekto_man_TextHandlerFactory import TextHandlerFactory
 from requests.exceptions import ReadTimeout

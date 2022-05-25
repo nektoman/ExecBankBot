@@ -1,6 +1,4 @@
 import re
-from nekto_man_SapConnect import SapConnect
-from pyrfc import ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError
 from sap_model import  ConnectError, get_last_trans, get_balance
 
 

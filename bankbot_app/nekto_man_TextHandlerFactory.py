@@ -1,5 +1,4 @@
 import re
-from nekto_man_SapConnect import SapConnect, ABAPRuntimeError, ABAPApplicationError, CommunicationError, LogonError
 from sap_model import ConnectError, set_new_user, create_trans
 
 class TextHandlerFactory:
