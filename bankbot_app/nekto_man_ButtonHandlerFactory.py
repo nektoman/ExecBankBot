@@ -1,6 +1,7 @@
 import re
 from nekto_man_SapConnect import SapConnect
 from pyrfc import ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError
+from sap_model import  ConnectError, get_last_trans, get_balance
 
 
 class HandlerChooseLogin:
@@ -67,54 +68,51 @@ class HandlerCheckTrans:
                                             text="Просмотреть транзакции")
         # Вывести транзакции
         try:
-            conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_GET_LAST_TRANSK', IV_USER_ID=str(call.message.chat.id).zfill(10))
-            conn.close()
-            error = result.get('EV_ERROR')
-            if error != '':
-                # Возникли предвиденные ошибки
-                bankbot.get_bot().send_message(call.message.chat.id, error)
-                return
-
-            transactions_list = result.get('ET_TRANS')
-            text = "Последние транзакции в которых вы учавствовали:\n" \
-                   + "--------------------------------------\n"
-            if len(transactions_list) < bankbot.TRANS_IN_CHECK_TRANS:
-                count = len(transactions_list)
-            else:
-                count = bankbot.TRANS_IN_CHECK_TRANS
-            for i in range(count):
-                line = transactions_list[i]
-                summ = str(line.get('SUMM'))
-                waers = str(line.get('WAERS'))
-                timestamp = str(line.get('TIMESTAMPCRT'))
-                timestamp = timestamp[8:10] + ":" + timestamp[10:12] + ":" + timestamp[12:14] + " " + \
-                            timestamp[6:8] + "." + timestamp[4:6] + "." + timestamp[0:4]
-                reason = str(line.get('REASONCRT'))
-                name_from = str(line.get('USERFROM_FULL'))
-                name_to = str(line.get('USERTO_FULL'))
-
-                text = text + name_from + " -> " + name_to + " " + summ + " " + waers + "\n" + timestamp
-
-                if reason != '':
-                    text = text + "\n  C подписью: " + reason
-
-                text = text + ".\n--------------------------------------\n"
-
-                i = i + 1
-
-            bankbot.get_bot().send_message(call.message.chat.id, text)
-
-            # Успешно, перейти к начальному меню
-            # перевести в состояние "Авторизован, ожидаю меню"
-            bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
-            bankbot.show_start_directory(call.message)
-
-        except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-            print("Ошибки на стороне SAP")
+            result = get_last_trans(bankbot.config, call.message.chat.id)
+        except ConnectError:
             bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
+            return
+
+        if result.get('EV_ERROR') != '':
+            # Возникли предвиденные ошибки
+            bankbot.get_bot().send_message(call.message.chat.id, result.get('EV_ERROR'))
+            return
+
+        transactions_list = result.get('ET_TRANS')
+        text = "Последние транзакции в которых вы учавствовали:\n" \
+               + "--------------------------------------\n"
+        if len(transactions_list) < bankbot.TRANS_IN_CHECK_TRANS:
+            count = len(transactions_list)
+        else:
+            count = bankbot.TRANS_IN_CHECK_TRANS
+        for i in range(count):
+            line = transactions_list[i]
+            summ = str(line.get('SUMM'))
+            waers = str(line.get('WAERS'))
+            timestamp = str(line.get('TIMESTAMPCRT'))
+            timestamp = timestamp[8:10] + ":" + timestamp[10:12] + ":" + timestamp[12:14] + " " + \
+                        timestamp[6:8] + "." + timestamp[4:6] + "." + timestamp[0:4]
+            reason = str(line.get('REASONCRT'))
+            name_from = str(line.get('USERFROM_FULL'))
+            name_to = str(line.get('USERTO_FULL'))
+
+            text = text + name_from + " -> " + name_to + " " + summ + " " + waers + "\n" + timestamp
+
+            if reason != '':
+                text = text + "\n  C подписью: " + reason
+
+            text = text + ".\n--------------------------------------\n"
+
+            i = i + 1
+
+        bankbot.get_bot().send_message(call.message.chat.id, text)
+
+        # Успешно, перейти к начальному меню
+        # перевести в состояние "Авторизован, ожидаю меню"
+        bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
+        bankbot.show_start_directory(call.message)
 
 
 class HandlerCheckValet:
@@ -126,36 +124,21 @@ class HandlerCheckValet:
                                             text="Проверить баланс")
         # Показать Счет
         try:
-            conn = SapConnect.get_connection(bankbot.config)
-            result = conn.call('ZFM_NRA_TGBB_GET_BALANCEK', IV_USER_ID=str(call.message.chat.id).zfill(10))
-            conn.close()
-            error = result.get('EV_ERROR')
-            if error != '':
-                # Возникли ожидаемые ошибки
-                bankbot.get_bot().send_message(call.message.chat.id, error)
-                return
-
-            # Привожу к нормальному формату: удаляю лидирующие пробелы и переношу знак минуса влево
-            balance = result.get('EV_BALANCE')
-            balance = balance.lstrip()
-            if balance.endswith('-'):
-                balance = balance.rstrip('-')
-                balance = '-' + balance
-
-            text = "Ваш баланс : " + balance + " руб"
-            bankbot.get_bot().send_message(call.message.chat.id, text)
-
-            # Успешно, перейти к начальному меню
-            # перевести в состояние "Авторизован, ожидаю меню"
-            bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
-            bankbot.show_start_directory(call.message)
-
-        except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-            print("Ошибки на стороне SAP")
+            result = get_balance(bankbot.config, call.message.chat.id)
+        except ConnectError:
             bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
             bankbot.show_start_directory(call.message)
-
+            return
+        if result.get('EV_ERROR') != '':
+            # Возникли ожидаемые ошибки
+            bankbot.get_bot().send_message(call.message.chat.id, result.get('EV_ERROR'))
+            return
+        bankbot.get_bot().send_message(call.message.chat.id, f"Ваш баланс : {result.get('EV_BALANCE')} руб")
+        # Успешно, перейти к начальному меню
+        # перевести в состояние "Авторизован, ожидаю меню"
+        bankbot.states.set_step(call.message.chat.id, bankbot.states.STEP_MAIN_MENU)
+        bankbot.show_start_directory(call.message)
 
 class HandlerMistake:
     @staticmethod

@@ -9,7 +9,7 @@
 На основе <a  href="https://hub.docker.com/r/nektoman/sapnwsdk">готового контейнера</a>
 ```
 docker build . -t bankbot:latest
-docker run --name bankbot_prod --rm -d bankbot:latest config/[your_config_file]
+docker run --name bankbot_prod -d bankbot:latest config/[your_config_file]
 ```
 
 ## Запуск без docker
@@ -20,3 +20,4 @@ docker run --name bankbot_prod --rm -d bankbot:latest config/[your_config_file]
 ```
 pip install -r requirements.txt
 python3 main.py config/[your_config_file]
+```

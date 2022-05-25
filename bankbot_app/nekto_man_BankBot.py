@@ -7,6 +7,8 @@ from requests.exceptions import ReadTimeout
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import ReadTimeoutError
 from telebot import types
+from sap_model import  ConnectError, get_users
+from loguru import logger
 import time
 import telebot
 import re
@@ -170,18 +172,10 @@ class BankBot:
 
     def __get_users(self):
         try:
-            conn = SapConnect.get_connection(self.config)
-
-            result = conn.call('ZFM_NRA_TGBB_GET_USERSK')
-            conn.close()
-            raw_users_list = result.get('ET_USERS')
-            users_list = []
-            for element in raw_users_list:
-                users_list.append(BankUser(element.get('UNAME'), element.get('FULLNAME'), element.get('TG_ID')))
-
-            return users_list
-        except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-            print("Ошибки на стороне SAP, не удалось получить список пользователей")
+            return [(BankUser(element.get('UNAME'), element.get('FULLNAME'), element.get('TG_ID')))
+                    for element in get_users(self.config).get('ET_USERS')]
+        except ConnectError as ex:
+            logger.error(ex.txt)
 
     def run(self):
         while True:
