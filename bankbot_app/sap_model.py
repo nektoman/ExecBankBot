@@ -25,19 +25,19 @@ def __sap_call(func):
 @__sap_call
 def get_users(**kwargs):
     #ET_USERS
-    return kwargs['connect'].call('ZFM_NRA_TGBB_GET_USERS')
+    return kwargs['connect'].call('ZFM_NRA_TGBB_GET_USERSK')
 
 @__sap_call
 def get_last_trans(id, **kwargs):
     #ET_TRANS
     #EV_ERROR
-    return kwargs['connect'].call('ZFM_NRA_TGBB_GET_LAST_TRANS', IV_USER_ID=str(id).zfill(10))
+    return kwargs['connect'].call('ZFM_NRA_TGBB_GET_LAST_TRANSK', IV_USER_ID=str(id).zfill(10))
 
 @__sap_call
 def get_balance(id, **kwargs):
     #EV_ERROR
     #EV_BALANCE
-    result = kwargs['connect'].call('ZFM_NRA_TGBB_GET_BALANCE', IV_USER_ID=str(id).zfill(10))
+    result = kwargs['connect'].call('ZFM_NRA_TGBB_GET_BALANCEK', IV_USER_ID=str(id).zfill(10))
     balance = result.get('EV_BALANCE').lstrip()
     if balance.endswith('-'):
         balance = balance.rstrip('-')
@@ -48,14 +48,14 @@ def get_balance(id, **kwargs):
 @__sap_call
 def set_new_user(id, SAP_LOGIN, **kwargs):
     #EV_ERROR
-    return kwargs['connect'].call('ZFM_NRA_TGBB_SET_NEW_USER',
+    return kwargs['connect'].call('ZFM_NRA_TGBB_SET_NEW_USERK',
                                   IV_USER_ID=str(id).zfill(10),
                                   IV_SAP_LOGIN=SAP_LOGIN)
 
 @__sap_call
 def create_trans(user_from, user_to, comment, sum, user_creator, **kwargs):
     #EV_ERROR
-    return kwargs['connect'].call('ZFM_NRA_TGBB_CREATE_TRANS',
+    return kwargs['connect'].call('ZFM_NRA_TGBB_CREATE_TRANSK',
                                   IV_USER_FROM=user_from,
                                   IV_USER_TO=user_to,
                                   IV_COMMENT=comment,
