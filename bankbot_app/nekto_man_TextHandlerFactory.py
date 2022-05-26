@@ -1,4 +1,4 @@
-import re
+from re import split
 from sap_model import ConnectError, set_new_user, create_trans
 
 class TextHandlerFactory:
@@ -80,7 +80,7 @@ class FillSum:
     def process(message, bankbot):
         # Получили ввод во время ожидания суммы
         try:
-            trans = re.split(' ', message.text, maxsplit=1)
+            trans = split(' ', message.text, maxsplit=1)
             sum_text = trans[0].replace(',', '.')
             if len(sum_text) > 13:
                 # Олигархи бл

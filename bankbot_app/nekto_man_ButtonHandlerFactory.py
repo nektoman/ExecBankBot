@@ -1,4 +1,4 @@
-import re
+from re import sub, search
 from sap_model import  ConnectError, get_last_trans, get_balance
 
 
@@ -9,7 +9,7 @@ class HandlerChooseLogin:
         receiver_login = None
         for user in bankbot.users:
             call_text = call.data
-            if re.sub(bankbot.R_LOGIN_BUTTON_PREF, '', call_text) == user.sap_login:
+            if sub(bankbot.R_LOGIN_BUTTON_PREF, '', call_text) == user.sap_login:
                 receiver_fullname = user.full_name
                 receiver_login = user.sap_login
                 break
@@ -30,11 +30,11 @@ class HandlerLogNavigation:
     def process(call, bankbot):
         # Устанавливаем необходимую страницу
         old_page = bankbot.states.get_page(call.message.chat.id)
-        if re.search("left_arrow", call.data) is not None:
+        if search("left_arrow", call.data) is not None:
             bankbot.states.set_page(call.message.chat.id, old_page - 1)
-        elif re.search("right_arrow", call.data) is not None:
+        elif search("right_arrow", call.data) is not None:
             bankbot.states.set_page(call.message.chat.id, old_page + 1)
-        elif re.search("reset", call.data) is not None:
+        elif search("reset", call.data) is not None:
             bankbot.states.set_name_search(call.message.chat.id, '')
         keyboard = bankbot.get_keyboard_rec(call.message.chat.id)
         bankbot.get_bot().edit_message_text(chat_id=call.message.chat.id,
@@ -162,9 +162,9 @@ class ButtonHandlerFactory:
                 else:
                     return HandlerMistake()
             elif bankbot.states.get_step(call.message.chat.id) == bankbot.states.STEP_WAIT_LOGIN_RECEIVER:
-                if re.search(bankbot.R_LOGIN_BUTTON_PREF, call.data) is not None:
+                if search(bankbot.R_LOGIN_BUTTON_PREF, call.data) is not None:
                     return HandlerChooseLogin()
-                elif re.search(bankbot.R_NAVIGATION_BUTTON_PREF, call.data) is not None:
+                elif search(bankbot.R_NAVIGATION_BUTTON_PREF, call.data) is not None:
                     return HandlerLogNavigation()
                 else:
                     return HandlerMistake()

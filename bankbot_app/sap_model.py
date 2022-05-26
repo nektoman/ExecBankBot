@@ -2,6 +2,7 @@ from nekto_man_SapConnect import SapConnect, ConnectError
 from functools import wraps
 from loguru import logger
 
+
 class SapModelError(Exception):
     def __init__(self, text):
         self.txt = text
@@ -63,7 +64,6 @@ def create_trans(user_from, user_to, comment, sum, user_creator, **kwargs):
                                   IV_USER_CREATOR=user_creator)
 
 from configparser import ConfigParser
-from bankbot_app.nekto_man_BankUser import BankUser
 if __name__ == "__main__":
     configs = ConfigParser()
     configs.read("config\sapnwrfc_test.cfg")

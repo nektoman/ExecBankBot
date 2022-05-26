@@ -1,5 +1,5 @@
 from nekto_man_BankBot import BankBot
-import sys
+from sys import argv
 
 if __name__ == '__main__':
-    BankBot(sys.argv[1]).run()
+    BankBot(argv[1]).run()
