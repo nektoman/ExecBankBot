@@ -26,7 +26,7 @@ class Authorization:
         # Если статус пользователя - "ожидание логина"
         try:
             # Мы получили логин от пользователя, нужно передать их в БД
-            result = set_new_user(bankbot.config, message.from_user.id, message.text)
+            result = set_new_user(message.from_user.id, message.text, config=bankbot.config)
         except ConnectError:
             bankbot.get_bot().send_message(message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)
@@ -104,7 +104,7 @@ class FillSum:
                 if user.id == str(message.from_user.id).zfill(10):
                     creator_login = user.sap_login
             try:
-                result = create_trans(bankbot.config, user_from, user_to, trans_comment, trans_sum, creator_login)
+                result = create_trans(user_from, user_to, trans_comment, trans_sum, creator_login, config=bankbot.config)
             except ConnectError:
                 bankbot.get_bot().send_message(message.chat.id, "Ошибки на стороне SAP")
                 bankbot.states.set_step(message.chat.id, bankbot.states.STEP_MAIN_MENU)

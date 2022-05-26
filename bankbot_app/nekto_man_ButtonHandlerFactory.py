@@ -66,7 +66,7 @@ class HandlerCheckTrans:
                                             text="Просмотреть транзакции")
         # Вывести транзакции
         try:
-            result = get_last_trans(bankbot.config, call.message.chat.id)
+            result = get_last_trans(call.message.chat.id, config=bankbot.config)
         except ConnectError:
             bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)
@@ -122,7 +122,7 @@ class HandlerCheckValet:
                                             text="Проверить баланс")
         # Показать Счет
         try:
-            result = get_balance(bankbot.config, call.message.chat.id)
+            result = get_balance(call.message.chat.id, config=bankbot.config)
         except ConnectError:
             bankbot.get_bot().send_message(call.message.chat.id, "Ошибки на стороне SAP")
             bankbot.states.set_step(call.message.chat.id, bankbot.self.states.STEP_MAIN_MENU)

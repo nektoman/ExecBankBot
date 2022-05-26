@@ -31,7 +31,7 @@ class BankBot:
         @self.__bot.message_handler(commands=['start'])
         def start(message):
             # Проверить текущего пользователя в списке пользователей
-            print("start for "+str(message.chat.id).zfill(10))
+            logger.debug("start for "+str(message.chat.id).zfill(10))
             for element in self.users:
                 if element.id == str(message.chat.id).zfill(10):
                     # Перейти к начальному меню
@@ -172,21 +172,21 @@ class BankBot:
     def __get_users(self):
         try:
             return [(BankUser(element.get('UNAME'), element.get('FULLNAME'), element.get('TG_ID')))
-                    for element in get_users(self.config).get('ET_USERS')]
+                    for element in get_users(config=self.config).get('ET_USERS')]
         except ConnectError as ex:
             logger.error(ex.txt)
 
     def run(self):
         while True:
             try:
-                print("Server up")
+                logger.info("Server up")
                 self.__bot.polling()
             except ConnectionError:
-                print("Server down: ConnectionError")
+                logger.error("Server down: ConnectionError")
                 time.sleep(5)
                 continue
             except (ReadTimeoutError, ReadTimeout):
-                print("Server down: ReadTimeoutError")
+                logger.error("Server down: ReadTimeoutError")
                 time.sleep(5)
                 continue
 
