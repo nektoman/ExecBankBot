@@ -1,17 +1,16 @@
 from nekto_man_states import States
 from nekto_man_BankUser import BankUser
-from nekto_man_SapConnect import SapConnect, ABAPRuntimeError, ABAPApplicationError, CommunicationError, LogonError
 from nekto_man_ButtonHandlerFactory import ButtonHandlerFactory
 from nekto_man_TextHandlerFactory import TextHandlerFactory
-from requests.exceptions import ReadTimeout
-from requests.exceptions import ConnectionError
+from requests.exceptions import ReadTimeout, ConnectionError
 from urllib3.exceptions import ReadTimeoutError
-from telebot import types
-import time
-import telebot
-import re
-import copy
-import configparser
+from telebot import types, TeleBot
+from sap_model import  ConnectError, get_users
+from loguru import logger
+from time import sleep
+from re import search
+from copy import deepcopy
+from configparser import ConfigParser
 
 
 class BankBot:
@@ -22,15 +21,15 @@ class BankBot:
 
     def __init__(self, config_name):
         self.states = States()
-        self.config = configparser.ConfigParser()
+        self.config = ConfigParser()
         self.config.read(config_name)
         self.users = self.__get_users()
-        self.__bot = telebot.TeleBot(self.config.get("bot", "token"))
+        self.__bot = TeleBot(self.config.get("bot", "token"))
 
         @self.__bot.message_handler(commands=['start'])
         def start(message):
             # Проверить текущего пользователя в списке пользователей
-            print("start for "+str(message.chat.id).zfill(10))
+            logger.debug("start for "+str(message.chat.id).zfill(10))
             for element in self.users:
                 if element.id == str(message.chat.id).zfill(10):
                     # Перейти к начальному меню
@@ -149,7 +148,7 @@ class BankBot:
 
     def __get_users_list_with_search(self, for_user):
         # Исключить самого пользователя
-        all_users = copy.deepcopy(self.users)
+        all_users = deepcopy(self.users)
         for user in all_users:
             if user.id == str(for_user).zfill(10):
                 all_users.remove(user)
@@ -163,38 +162,30 @@ class BankBot:
             # Если поисковый запрос заполнен- возвращаем только те записи в которых есть вхождение искомой строки
             users_list_with_search = []
             for user in all_users:
-                if re.search(name_search, user.full_name.upper()) is not None:
-                    temp = re.search(name_search, user.full_name.upper())
+                if search(name_search, user.full_name.upper()) is not None:
+                    temp = search(name_search, user.full_name.upper())
                     users_list_with_search.append(user)
         return users_list_with_search
 
     def __get_users(self):
         try:
-            conn = SapConnect.get_connection(self.config)
-
-            result = conn.call('ZFM_NRA_TGBB_GET_USERSK')
-            conn.close()
-            raw_users_list = result.get('ET_USERS')
-            users_list = []
-            for element in raw_users_list:
-                users_list.append(BankUser(element.get('UNAME'), element.get('FULLNAME'), element.get('TG_ID')))
-
-            return users_list
-        except (ABAPApplicationError, ABAPRuntimeError, LogonError, CommunicationError):
-            print("Ошибки на стороне SAP, не удалось получить список пользователей")
+            return [(BankUser(element.get('UNAME'), element.get('FULLNAME'), element.get('TG_ID')))
+                    for element in get_users(config=self.config).get('ET_USERS')]
+        except ConnectError as ex:
+            logger.error(ex.txt)
 
     def run(self):
         while True:
             try:
-                print("Server up")
+                logger.info("Server up")
                 self.__bot.polling()
             except ConnectionError:
-                print("Server down: ConnectionError")
-                time.sleep(5)
+                logger.error("Server down: ConnectionError")
+                sleep(5)
                 continue
             except (ReadTimeoutError, ReadTimeout):
-                print("Server down: ReadTimeoutError")
-                time.sleep(5)
+                logger.error("Server down: ReadTimeoutError")
+                sleep(5)
                 continue
 
     def get_bot(self):

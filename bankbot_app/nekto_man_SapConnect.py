@@ -1,5 +1,9 @@
-from pyrfc import Connection, LogonError, CommunicationError, ABAPRuntimeError, ABAPApplicationError
+from pyrfc import Connection, LogonError, CommunicationError
+from loguru import logger
 
+class ConnectError(Exception):
+    def __init__(self, text):
+        self.txt = text
 
 class SapConnect:
     @staticmethod
@@ -9,8 +13,8 @@ class SapConnect:
             conn = Connection(**params_connection)
             return conn
         except CommunicationError:
-            print("Could not connect to server.")
-            raise
+            logger.error("Could not connect to server.")
+            raise ConnectError("Could not connect to server.")
         except LogonError:
-            print("Could not log in. Wrong credentials?")
-            raise
+            logger.error("Could not log in. Wrong credentials?")
+            raise ConnectError("Could not log in. Wrong credentials?")
